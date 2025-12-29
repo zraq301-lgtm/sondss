@@ -6,12 +6,10 @@
     <title>عالم سندس العبقرية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* تعريف الألوان الروز والأنثوية */
         :root {
-            --rose-light: #fff0f5; /* LavenderBlush */
-            --rose-main: #ff66b2;  /* Rose Pink */
-            --rose-soft: #ffb7c5;  /* Cherry Blossom */
-            --gold-soft: #f3e5ab;
+            --rose-light: #fff0f5;
+            --rose-main: #ff66b2;
+            --rose-soft: #ffb7c5;
             --grad-rose: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
         }
 
@@ -27,7 +25,6 @@
             flex-direction: column;
         }
 
-        /* الصفحات */
         .page {
             display: none;
             flex: 1;
@@ -36,11 +33,11 @@
             overflow-y: auto;
             padding-bottom: 100px;
         }
+
         .active { display: block; animation: fadeIn 0.5s ease; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* الواجهة الرئيسية */
         .hero {
             display: flex;
             flex-direction: column;
@@ -48,13 +45,14 @@
             justify-content: center;
             height: 100%;
         }
+
         .welcome-msg {
             font-size: 2.2rem;
             color: var(--rose-main);
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
             margin-bottom: 15px;
         }
+
         .sondos-frame {
             width: 260px;
             height: 360px;
@@ -62,14 +60,15 @@
             border-radius: 40px;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(255, 102, 178, 0.3);
+            background: #fce4ec; /* خلفية احتياطية */
         }
+
         .sondos-frame img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        /* شريط التنقل السفلي الروز */
         .nav-dock {
             position: fixed;
             bottom: 15px;
@@ -83,39 +82,35 @@
             border-radius: 50px;
             border: 2px solid var(--rose-soft);
             z-index: 1000;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+
         .nav-btn {
             color: #d8a4b8;
             font-size: 1.7rem;
             cursor: pointer;
             transition: 0.3s;
         }
+
         .nav-btn.active { color: var(--rose-main); transform: scale(1.2); }
 
-        /* قسم الرسم (اللوحة) */
         #canvas-wrapper {
             background: white;
             border: 3px solid var(--rose-soft);
             border-radius: 20px;
             margin: 10px auto;
             width: 95%;
-            height: 380px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            height: 350px;
         }
+
         canvas { width: 100%; height: 100%; touch-action: none; border-radius: 17px; }
-        
+
         .art-tools {
-            margin-top: 15px;
             margin-bottom: 90px;
             display: flex;
             justify-content: center;
             gap: 12px;
-            align-items: center;
         }
 
-        /* الأزرار الوردية */
         .btn-rose {
             background: var(--grad-rose);
             border: none;
@@ -124,10 +119,6 @@
             color: #5d1049;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 3px 10px rgba(255, 154, 158, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .card {
@@ -135,16 +126,7 @@
             padding: 20px;
             border-radius: 25px;
             margin: 15px 0;
-            border: 1px solid var(--rose-light);
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        input[type="color"] {
-            border: none;
-            width: 45px;
-            height: 45px;
-            cursor: pointer;
-            background: none;
         }
     </style>
 </head>
@@ -154,9 +136,9 @@
         <div class="hero">
             <h1 class="welcome-msg">أهلاً بكِ يا سندس 🌸</h1>
             <div class="sondos-frame">
-                <img src="IMG-20250713-WA0003.jpg" alt="سندس العبقرية">
+                <img src="IMG-20250713-WA0003.jpg" alt="سندس العبقرية" onerror="this.src='IMG-20250713-WA0003.jpg'">
             </div>
-            <p style="color: #a04060; font-weight: 500;">عبقرية العلوم والجمال</p>
+            <p style="color: #a04060; margin-top:10px;">عبقرية العلوم والجمال</p>
         </div>
     </section>
 
@@ -166,21 +148,19 @@
             <h3 id="question-display">تحميل لغز العلوم...</h3>
             <div id="answers-grid"></div>
         </div>
-        <p>مجموع نقاطك: <span id="points-count" style="font-weight: bold; color: var(--rose-main);">0</span> ✨</p>
+        <p>النقاط: <span id="points-count">0</span> ✨</p>
     </section>
 
     <section id="medical" class="page">
         <h2 style="color: var(--rose-main)">🩺 طب سندس</h2>
-        <div class="card" onclick="alert('الأعصاب: رسائل سريعة جداً تجعل سندس ذكية ونبيهة!')">🧠 عالم الأعصاب</div>
-        <div class="card" onclick="alert('الخلايا: ملايين المصانع الصغيرة داخل جسمك تعمل معاً.')">🧬 لغز الخلايا</div>
+        <div class="card" onclick="alert('الأعصاب: رسائل سريعة تجعلك ذكية!')">🧠 الجهاز العصبي</div>
+        <div class="card" onclick="alert('الخلايا: هي أساس بناء جسمك العجيب.')">🧬 الخلية</div>
     </section>
 
     <section id="lab" class="page">
         <h2 style="color: var(--rose-main)">🧪 معمل سندس</h2>
-        <div id="beaker-icon" style="font-size: 90px; color: var(--rose-main);">🧪</div>
-        <p id="lab-text">قومي بتركيب المحاليل الكيميائية</p>
-        <button class="btn-rose" onclick="mixAction('المغنيسيوم', 'وردي متوهج')">إضافة مادة A</button>
-        <button class="btn-rose" style="margin-top:10px" onclick="mixAction('البوتاسيوم', 'بنفسجي رقيق')">إضافة مادة B</button>
+        <div id="beaker-icon" style="font-size: 80px;">🧪</div>
+        <button class="btn-rose" onclick="mix()">إضافة مادة سحرية</button>
     </section>
 
     <section id="art" class="page">
@@ -190,8 +170,8 @@
         </div>
         <div class="art-tools">
             <input type="color" id="colorPicker" value="#ff66b2">
-            <button class="btn-rose" onclick="clearBoard()"><i class="fas fa-eraser"></i> مسح</button>
-            <button class="btn-rose" onclick="downloadArt()"><i class="fas fa-download"></i> تحميل الرسمة</button>
+            <button class="btn-rose" onclick="clearBoard()">مسح</button>
+            <button class="btn-rose" onclick="downloadArt()">حفظ الرسمة</button>
         </div>
     </section>
 
@@ -204,99 +184,58 @@
     </nav>
 
     <script>
-        // نظام التنقل بين الأقسام
         function goPage(pageId, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             btn.classList.add('active');
             if(pageId === 'art') initDrawing();
-            if(pageId === 'secrets') loadScienceTask();
         }
 
-        // --- حجرة الأسرار (العلوم) ---
-        let totalScore = 0;
-        const scienceQuestions = [
-            {q: "أي طبقة تحمي الأرض من الأشعة الضارة؟", a: ["الأوزون", "التروبوسفير"], c: 0},
-            {q: "جزيء الماء يتكون من أكسجين و...؟", a: ["نيتروجين", "هيدروجين"], c: 1},
-            {q: "ما هي وحدة قياس التردد؟", a: ["الهرتز", "المتر"], c: 0}
-        ];
-
+        let score = 0;
         function loadScienceTask() {
-            const task = scienceQuestions[Math.floor(Math.random() * scienceQuestions.length)];
-            document.getElementById('question-display').innerText = task.q;
+            document.getElementById('question-display').innerText = "ما هو غاز الحياة؟";
             const grid = document.getElementById('answers-grid');
-            grid.innerHTML = '';
-            task.a.forEach((opt, idx) => {
-                const b = document.createElement('button');
-                b.className = 'btn-rose'; b.style.width = '100%'; b.style.margin = '8px 0';
-                b.innerText = opt;
-                b.onclick = () => {
-                    if(idx === task.c) { totalScore += 10; alert("إجابة صحيحة يا عبقرية! ✨"); }
-                    document.getElementById('points-count').innerText = totalScore;
-                    loadScienceTask();
-                };
-                grid.appendChild(b);
-            });
+            grid.innerHTML = '<button class="btn-rose" onclick="check(true)">الأكسجين</button>';
         }
+        function check(v) { if(v) score += 10; document.getElementById('points-count').innerText = score; }
+        loadScienceTask();
 
-        // --- المعمل ---
-        function mixAction(name, colorName) {
-            document.getElementById('beaker-icon').style.filter = `hue-rotate(${Math.random()*360}deg)`;
-            document.getElementById('lab-text').innerText = `رائع! خلط ${name} أعطى لوناً ${colorName}`;
-        }
+        function mix() { document.getElementById('beaker-icon').style.color = '#'+Math.floor(Math.random()*16777215).toString(16); }
 
-        // --- نظام الرسم المحترف ---
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        let isDrawing = false;
+        let drawing = false;
 
         function initDrawing() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
-            ctx.lineCap = 'round';
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 5; ctx.lineCap = 'round';
         }
 
-        function startPosition(e) {
-            isDrawing = true;
-            drawAction(e);
-        }
+        canvas.onmousedown = (e) => { drawing = true; draw(e); };
+        canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+        canvas.onmousemove = (e) => draw(e);
 
-        function finishedPosition() {
-            isDrawing = false;
-            ctx.beginPath();
-        }
+        canvas.ontouchstart = (e) => { drawing = true; draw(e.touches[0]); };
+        canvas.ontouchend = () => { drawing = false; ctx.beginPath(); };
+        canvas.ontouchmove = (e) => draw(e.touches[0]);
 
-        function drawAction(e) {
-            if (!isDrawing) return;
+        function draw(e) {
+            if(!drawing) return;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            
             ctx.strokeStyle = document.getElementById('colorPicker').value;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
         }
-
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mousemove', drawAction);
-        window.addEventListener('mouseup', finishedPosition);
-        
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); drawAction(e); });
-        canvas.addEventListener('touchend', finishedPosition);
 
         function clearBoard() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
         function downloadArt() {
             const link = document.createElement('a');
-            link.download = 'إبداع_سندس_العبقرية.png';
+            link.download = 'art.png';
             link.href = canvas.toDataURL();
             link.click();
         }
     </script>
 </body>
-</html>
+            </html>
