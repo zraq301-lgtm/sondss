@@ -13,7 +13,7 @@
         
         .top-nav { background: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1001; }
         .logo-text { font-weight: bold; color: var(--p2); font-size: 22px; }
-        .user-id-badge { font-size: 10px; color: #999; background: var(--soft); padding: 4px 10px; border-radius: 12px; border: 1px solid #ffe7f0; }
+        .user-badge { font-size: 10px; color: #999; background: var(--soft); padding: 4px 10px; border-radius: 12px; border: 1px solid #ffe7f0; }
 
         .page { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
         .page.active { display: block; }
@@ -28,12 +28,6 @@
         .tracker-item i { font-size: 18px; color: var(--p2); margin-bottom: 4px; display: block; }
         .tracker-item span { font-size: 10px; font-weight: bold; }
 
-        #chat-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 12px; border-radius: 15px; max-width: 85%; font-size: 14px; }
-        .msg-user { align-self: flex-start; background: #f0f0f0; border-radius: 0 15px 15px 15px; }
-        .msg-ai { align-self: flex-end; background: var(--soft); border-right: 4px solid var(--p2); border-radius: 15px 0 15px 15px; }
-
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #eee; padding: 8px 0; z-index: 1000; }
         .nav-link { flex: 1; text-align: center; color: #bbb; text-decoration: none; font-size: 10px; }
         .nav-link.active { color: var(--p2); font-weight: bold; }
@@ -47,11 +41,11 @@
 
     <header class="top-nav">
         <div class="logo-text">رقة</div>
-        <div id="display-user-id" class="user-id-badge">جاري التعريف...</div>
+        <div id="display-user-id" class="user-badge">جاري التعريف...</div>
     </header>
 
     <div id="page-health" class="page active">
-        <button class="ai-header-btn btn-health" onclick="openAIChat('تحليل رقة الصحي')">
+        <button class="ai-header-btn btn-health">
             <i class="fas fa-robot"></i> طبيبة رقة - تحليل ذكي وتنبيهات
         </button>
         
@@ -65,19 +59,6 @@
         </div>
     </div>
 
-    <div id="chat-overlay">
-        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; background:var(--soft);">
-            <i class="fas fa-times" onclick="closeChat()" style="color:#999; cursor:pointer;"></i>
-            <span id="chat-title" style="font-weight:bold; color:var(--p2);">تحليل رقة</span>
-            <div style="width:20px;"></div>
-        </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <div style="padding:10px; display:flex; gap:5px; background:white; border-top:1px solid #eee;">
-            <input type="text" id="chat-input" placeholder="اسألي رقة عن صحتكِ..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #eee;">
-            <button onclick="sendManualMsg()" style="background:var(--p2); color:white; border:none; width:40px; height:40px; border-radius:50%;"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
     <nav class="nav-bar">
         <a href="#" class="nav-link active"><i class="fas fa-heartbeat"></i>المتابعة</a>
         <a href="#" class="nav-link"><i class="fas fa-history"></i>السجل</a>
@@ -85,7 +66,7 @@
     </nav>
 
     <script>
-        // نظام إدارة معرف المستخدم لضمان ربط البيانات بملفك الخاص
+        // 1. نظام المعرف الفريد للمستخدم (يتطابق مع صورك)
         function initUser() {
             let uid = localStorage.getItem('raqqa_user_id');
             if (!uid) {
@@ -96,30 +77,28 @@
             return uid;
         }
 
-        // الوظيفة الأساسية لإرسال البيانات ومزامنتها مع Vercel Postgres
-        async function saveDataAndSync(category, val, note, title) {
+        // 2. وظيفة المزامنة (محدثة لتطابق كود الـ API الخاص بك)
+        async function saveDataAndSync(category, val, note, rating = 0) {
             const userId = initUser();
             Swal.fire({ 
-                title: 'جاري المزامنة...', 
-                html: 'يتم الآن حفظ بياناتك وتجهيز التحليل الذكي ✨',
+                title: 'جاري الحفظ...', 
+                html: 'رقة تقوم بتأمين بياناتك ✨',
                 allowOutsideClick: false, 
                 didOpen: () => Swal.showLoading() 
             });
 
             try {
-                // الاتصال بـ API المزامنة
                 const response = await fetch('/api/health-tracking', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         user_id: userId,
                         category: category,
-                        value: val,
-                        note: note
+                        value: parseFloat(val) || 0, // يطابق numeric_value في الـ API
+                        note: note,                  // يطابق text_note في الـ API
+                        rating: rating               // يطابق rating_score في الـ API
                     })
                 });
-
-                if (!response.ok) throw new Error('فشل المزامنة');
 
                 const result = await response.json();
                 Swal.close();
@@ -127,79 +106,49 @@
                 if (result.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: result.notification.title,
-                        text: result.notification.body,
+                        title: 'تمت المزامنة',
+                        text: result.message, // الرسالة المخصصة من الـ API الخاص بكِ
                         toast: true,
                         position: 'top-end',
                         timer: 5000,
                         showConfirmButton: false
                     });
-
-                    // تفعيل التحليل الطبي الذكي تلقائياً
-                    openAIChat(title);
-                    triggerAIAnalysis(title, val, note);
+                } else {
+                    throw new Error(result.error);
                 }
             } catch (err) {
                 Swal.fire({
                     icon: 'error',
                     title: 'خطأ في المزامنة',
-                    text: 'تأكدي من اتصالك بالإنترنت ومن ربط قاعدة البيانات في Vercel بشكل صحيح.',
+                    text: 'تأكدي من ربط قاعدة البيانات في Vercel وإعادة النشر (Redeploy).',
                     confirmButtonText: 'حسناً'
                 });
             }
         }
 
-        // دالة تحليل البيانات عبر ذكاء رقة الاصطناعي
-        async function triggerAIAnalysis(title, val, note) {
-            const container = document.getElementById('chat-messages');
-            container.innerHTML += `<div class="msg msg-user">سجلتُ بيانات ${title}: ${val}. ملاحظة: ${note}</div>`;
-            
-            try {
-                const res = await fetch('/api/raqqa-ai', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ prompt: `بصفتكِ طبيبة رقة، قيمي هذه البيانات لـ ${title}: ${val}. الملاحظة: ${note}.` })
-                });
-                const data = await res.json();
-                container.innerHTML += `<div class="msg msg-ai">${data.reply || 'تم تحديث سجلك الطبي بنجاح.'}</div>`;
-                container.scrollTop = container.scrollHeight;
-            } catch(e) { 
-                console.error("AI Analysis Failed"); 
-            }
-        }
-
-        // نافذة إدخال البيانات المخصصة
+        // 3. معالج الإدخال
         function showHealthInput(type) {
-            let config = {};
-            switch(type) {
-                case 'vitals': config = { title: 'الضغط والسكر', html: `<label class="swal-label">القياس (رقمي):</label><input id="v1" type="number" step="0.1" class="swal-custom-input"><label class="swal-label">ملاحظات (مثل 120/80):</label><input id="v2" class="swal-custom-input">` }; break;
-                case 'weightloss': config = { title: 'الوزن الحالي', html: `<label class="swal-label">الوزن (كجم):</label><input id="v1" type="number" step="0.1" class="swal-custom-input"><label class="swal-label">ملاحظات:</label><input id="v2" class="swal-custom-input">` }; break;
-                default: config = { title: 'سجل رقة', html: `<label class="swal-label">القيمة الرقمية:</label><input id="v1" type="number" class="swal-custom-input"><label class="swal-label">ملاحظات إضافية:</label><input id="v2" class="swal-custom-input">` };
-            }
+            let config = { title: 'سجل رقة', label: 'القيمة:' };
+            if(type === 'vitals') config = { title: 'الضغط والسكر', label: 'القياس الرقمي:' };
+            if(type === 'weightloss') config = { title: 'الوزن الحالي', label: 'الوزن (كجم):' };
 
             Swal.fire({
                 title: config.title,
-                html: config.html,
+                html: `
+                    <label class="swal-label">${config.label}</label>
+                    <input id="v1" type="number" step="0.1" class="swal-custom-input">
+                    <label class="swal-label">ملاحظاتكِ:</label>
+                    <input id="v2" class="swal-custom-input">
+                `,
                 confirmButtonText: 'حفظ ومزامنة ✨',
                 showCancelButton: true,
-                cancelButtonText: 'إلغاء',
                 preConfirm: () => [document.getElementById('v1').value, document.getElementById('v2').value]
             }).then(r => {
-                if(r.isConfirmed) saveDataAndSync(type, r.value[0], r.value[1], config.title);
+                if(r.isConfirmed) saveDataAndSync(type, r.value[0], r.value[1]);
             });
-        }
-
-        function openAIChat(t) { document.getElementById('chat-title').innerText = t; document.getElementById('chat-overlay').style.display = 'flex'; }
-        function closeChat() { document.getElementById('chat-overlay').style.display = 'none'; }
-        function sendManualMsg() {
-            const input = document.getElementById('chat-input');
-            if(input.value.trim()) {
-                triggerAIAnalysis("استفسار خاص", "", input.value);
-                input.value = '';
-            }
         }
 
         window.onload = initUser;
     </script>
 </body>
-                </html>
+            </html>
