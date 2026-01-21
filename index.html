@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق رقة | المنصة المتكاملة</title>
+    <title>تطبيق رقة | عالمكِ الخاص</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -13,7 +13,7 @@
         
         .top-nav { background: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1001; }
         .logo-text { font-weight: bold; color: var(--p2); font-size: 22px; }
-        .user-id-badge { font-size: 10px; color: #999; background: var(--soft); padding: 2px 8px; border-radius: 10px; }
+        .user-id-badge { font-size: 10px; color: #999; background: var(--soft); padding: 4px 10px; border-radius: 12px; border: 1px solid #ffe7f0; }
 
         .page { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
         .page.active { display: block; }
@@ -51,7 +51,7 @@
     </header>
 
     <div id="page-health" class="page active">
-        <button class="ai-header-btn btn-health" onclick="openAIChat('تحليل رقة')">
+        <button class="ai-header-btn btn-health" onclick="openAIChat('تحليل رقة الصحي')">
             <i class="fas fa-robot"></i> طبيبة رقة - تحليل ذكي وتنبيهات
         </button>
         
@@ -62,18 +62,18 @@
             <div class="tracker-item" onclick="showHealthInput('vitals')"><i class="fas fa-heartbeat"></i><span>ضغط/سكر</span></div>
             <div class="tracker-item" onclick="showHealthInput('sleep')"><i class="fas fa-moon"></i><span>النوم</span></div>
             <div class="tracker-item" onclick="showHealthInput('happiness')"><i class="fas fa-smile-beam"></i><span>السعادة</span></div>
-            </div>
+        </div>
     </div>
 
     <div id="chat-overlay">
-        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between;">
+        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; background:var(--soft);">
             <i class="fas fa-times" onclick="closeChat()" style="color:#999; cursor:pointer;"></i>
             <span id="chat-title" style="font-weight:bold; color:var(--p2);">تحليل رقة</span>
             <div style="width:20px;"></div>
         </div>
         <div id="chat-messages" class="chat-messages"></div>
         <div style="padding:10px; display:flex; gap:5px; background:white; border-top:1px solid #eee;">
-            <input type="text" id="chat-input" placeholder="اسألي رقة..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #eee;">
+            <input type="text" id="chat-input" placeholder="اسألي رقة عن صحتكِ..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #eee;">
             <button onclick="sendManualMsg()" style="background:var(--p2); color:white; border:none; width:40px; height:40px; border-radius:50%;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
@@ -85,7 +85,7 @@
     </nav>
 
     <script>
-        // 1. نظام المعرف المخصص (يُحفظ في المتصفح)
+        // نظام إدارة معرف المستخدم لضمان ربط البيانات بملفك الخاص
         function initUser() {
             let uid = localStorage.getItem('raqqa_user_id');
             if (!uid) {
@@ -96,28 +96,35 @@
             return uid;
         }
 
-        // 2. دالة الربط مع Vercel Postgres ونظام التنبيهات
+        // الوظيفة الأساسية لإرسال البيانات ومزامنتها مع Vercel Postgres
         async function saveDataAndSync(category, val, note, title) {
             const userId = initUser();
-            Swal.fire({ title: 'جاري المزامنة...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ 
+                title: 'جاري المزامنة...', 
+                html: 'يتم الآن حفظ بياناتك وتجهيز التحليل الذكي ✨',
+                allowOutsideClick: false, 
+                didOpen: () => Swal.showLoading() 
+            });
 
             try {
-                // حفظ البيانات والحصول على التنبيه من الـ API
+                // الاتصال بـ API المزامنة
                 const response = await fetch('/api/health-tracking', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         user_id: userId,
                         category: category,
-                        value: parseFloat(val) || 0,
+                        value: val,
                         note: note
                     })
                 });
+
+                if (!response.ok) throw new Error('فشل المزامنة');
+
                 const result = await response.json();
                 Swal.close();
 
                 if (result.success) {
-                    // إظهار التنبيه المستلم من Vercel
                     Swal.fire({
                         icon: 'success',
                         title: result.notification.title,
@@ -128,38 +135,46 @@
                         showConfirmButton: false
                     });
 
-                    // طلب تحليل الذكاء الاصطناعي بناءً على البيانات المحفوظة
+                    // تفعيل التحليل الطبي الذكي تلقائياً
                     openAIChat(title);
                     triggerAIAnalysis(title, val, note);
                 }
             } catch (err) {
-                Swal.fire('خطأ في المزامنة', 'تأكدي من اتصال الإنترنت', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ في المزامنة',
+                    text: 'تأكدي من اتصالك بالإنترنت ومن ربط قاعدة البيانات في Vercel بشكل صحيح.',
+                    confirmButtonText: 'حسناً'
+                });
             }
         }
 
-        // 3. تحليل الذكاء الاصطناعي
+        // دالة تحليل البيانات عبر ذكاء رقة الاصطناعي
         async function triggerAIAnalysis(title, val, note) {
             const container = document.getElementById('chat-messages');
             container.innerHTML += `<div class="msg msg-user">سجلتُ بيانات ${title}: ${val}. ملاحظة: ${note}</div>`;
+            
             try {
                 const res = await fetch('/api/raqqa-ai', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ prompt: `بصفتكِ طبيبة رقة، حللي هذه البيانات لـ ${title}: ${val}. ملاحظة المستخدم: ${note}.` })
+                    body: JSON.stringify({ prompt: `بصفتكِ طبيبة رقة، قيمي هذه البيانات لـ ${title}: ${val}. الملاحظة: ${note}.` })
                 });
                 const data = await res.json();
-                container.innerHTML += `<div class="msg msg-ai">${data.reply || 'رقة معكِ، تم تسجيل البيانات بنجاح.'}</div>`;
+                container.innerHTML += `<div class="msg msg-ai">${data.reply || 'تم تحديث سجلك الطبي بنجاح.'}</div>`;
                 container.scrollTop = container.scrollHeight;
-            } catch(e) { console.error("AI Error"); }
+            } catch(e) { 
+                console.error("AI Analysis Failed"); 
+            }
         }
 
-        // 4. معالج مدخلات المتابعة
+        // نافذة إدخال البيانات المخصصة
         function showHealthInput(type) {
             let config = {};
             switch(type) {
-                case 'vitals': config = { title: 'الضغط والسكر', html: `<label class="swal-label">القياس:</label><input id="v1" placeholder="مثلاً: 120/80" class="swal-custom-input"><label class="swal-label">ملاحظات:</label><input id="v2" class="swal-custom-input">` }; break;
-                case 'weightloss': config = { title: 'الوزن', html: `<label class="swal-label">الوزن الحالي (كجم):</label><input id="v1" type="number" class="swal-custom-input"><label class="swal-label">ملاحظات:</label><input id="v2" class="swal-custom-input">` }; break;
-                default: config = { title: 'متابعة رقة', html: `<label class="swal-label">القيمة:</label><input id="v1" class="swal-custom-input"><label class="swal-label">ملاحظات:</label><input id="v2" class="swal-custom-input">` };
+                case 'vitals': config = { title: 'الضغط والسكر', html: `<label class="swal-label">القياس (رقمي):</label><input id="v1" type="number" step="0.1" class="swal-custom-input"><label class="swal-label">ملاحظات (مثل 120/80):</label><input id="v2" class="swal-custom-input">` }; break;
+                case 'weightloss': config = { title: 'الوزن الحالي', html: `<label class="swal-label">الوزن (كجم):</label><input id="v1" type="number" step="0.1" class="swal-custom-input"><label class="swal-label">ملاحظات:</label><input id="v2" class="swal-custom-input">` }; break;
+                default: config = { title: 'سجل رقة', html: `<label class="swal-label">القيمة الرقمية:</label><input id="v1" type="number" class="swal-custom-input"><label class="swal-label">ملاحظات إضافية:</label><input id="v2" class="swal-custom-input">` };
             }
 
             Swal.fire({
@@ -167,6 +182,7 @@
                 html: config.html,
                 confirmButtonText: 'حفظ ومزامنة ✨',
                 showCancelButton: true,
+                cancelButtonText: 'إلغاء',
                 preConfirm: () => [document.getElementById('v1').value, document.getElementById('v2').value]
             }).then(r => {
                 if(r.isConfirmed) saveDataAndSync(type, r.value[0], r.value[1], config.title);
@@ -175,8 +191,15 @@
 
         function openAIChat(t) { document.getElementById('chat-title').innerText = t; document.getElementById('chat-overlay').style.display = 'flex'; }
         function closeChat() { document.getElementById('chat-overlay').style.display = 'none'; }
-        
+        function sendManualMsg() {
+            const input = document.getElementById('chat-input');
+            if(input.value.trim()) {
+                triggerAIAnalysis("استفسار خاص", "", input.value);
+                input.value = '';
+            }
+        }
+
         window.onload = initUser;
     </script>
 </body>
-    </html>
+                </html>
