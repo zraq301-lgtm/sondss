@@ -1,46 +1,51 @@
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-    
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
     const { user_id, category, value, note } = req.body;
 
     try {
-        // 1. حفظ البيانات الصحية الأساسية
+        // 1. الحفظ في Neon Postgres أولاً (الأساس)
         await sql`
             INSERT INTO health_tracking (user_id, category, numeric_value, text_note)
             VALUES (${user_id}, ${category}, ${value}, ${note});
         `;
 
-        // 2. طلب نصيحة من الذكاء الاصطناعي عبر GROQ
-        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: "mixtral-8x7b-32768",
-                messages: [
-                    { role: "system", content: "أنتِ طبيبة رقة، تطبيق لصحة المرأة. اكتبي نصيحة رقيقة ومختصرة جداً (سجل واحد فقط) بناءً على ما سجلته المستخدمة." },
-                    { role: "user", content: `سجلتُ في فئة ${category} قيمة ${value}. ملاحظتي كانت: ${note}` }
-                ]
-            })
-        });
+        let finalAdvice = "تم حفظ بياناتك بنجاح في رقة ✨";
 
-        const aiData = await groqRes.json();
-        const aiAdvice = aiData.choices[0].message.content;
+        // 2. محاولة جلب ذكاء اصطناعي من GROQ (المنصة الأولى)
+        try {
+            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "mixtral-8x7b-32768",
+                    messages: [{ role: "user", content: `أعطني نصيحة صحية لمستخدم سجل ${category} بقيمة ${value}` }]
+                })
+            });
+            const data = await groqRes.json();
+            if (data.choices && data.choices[0]) {
+                finalAdvice = data.choices[0].message.content;
+            }
+        } catch (e) {
+            console.log("GROQ failed, trying fallback...");
+            // هنا يمكنك إضافة منطق للمنصة الثانية MXBAI إذا كانت تدعم الـ Chat
+        }
 
-        // 3. أمر كتابة الإشعار في جدول الإشعارات
+        // 3. كتابة الإشعار النهائي في الجدول (ليظهر عند الجرس)
         await sql`
-            INSERT INTO notifications (user_id, body)
-            VALUES (${user_id}, ${aiAdvice});
+            INSERT INTO notifications (user_id, title, body)
+            VALUES (${user_id}, 'تحديث من ذكاء رقة', ${finalAdvice});
         `;
 
-        return res.status(200).json({ success: true, message: "تم الحفظ وتوليد النصيحة الذكية" });
+        return res.status(200).json({ success: true, message: finalAdvice });
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "خطأ في المعالجة الذكية" });
+        console.error("Critical Error:", error);
+        return res.status(500).json({ error: "تعذر المعالجة، تأكدي من إعدادات Vercel" });
     }
-                }
+}
