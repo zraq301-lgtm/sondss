@@ -4,145 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تطبيق رقة | الإشعارات الذكية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --p1: #ff85c0; --p2: #eb2f96; --bg: #fffcfd; --soft: #fff0f6; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; }
+        :root { --p2: #eb2f96; --soft: #fff0f6; }
+        body { font-family: 'Tajawal', sans-serif; background: #fffcfd; margin: 0; }
+        .top-nav { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .logo { font-weight: bold; color: var(--p2); font-size: 24px; }
         
-        /* الهيدر مع الجرس */
-        .top-nav { background: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1001; }
-        .logo-text { font-weight: bold; color: var(--p2); font-size: 22px; }
+        /* أيقونة الجرس */
+        .bell-btn { position: relative; cursor: pointer; font-size: 22px; color: var(--p2); }
+        .badge { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; width: 15px; height: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         
-        .notification-wrapper { position: relative; cursor: pointer; padding: 5px; }
-        #bell-icon { font-size: 22px; color: var(--p2); }
-        .noti-badge { position: absolute; top: 0; right: 0; background: #ff4d4f; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
-
-        /* صندوق الإشعارات */
-        .noti-box { position: absolute; top: 45px; left: 0; width: 280px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; z-index: 2000; border: 1px solid #eee; }
-        .noti-header { padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--p2); display: flex; justify-content: space-between; align-items: center; }
-        .noti-list { max-height: 300px; overflow-y: auto; }
-        .noti-item { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 13px; transition: 0.3s; }
-        .noti-item:hover { background: var(--soft); }
-        .noti-item.warning { border-right: 4px solid #ff4d4f; }
-        .noti-item.info { border-right: 4px solid #1890ff; }
-
-        .health-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
-        .tracker-item { background: #fff; padding: 15px 5px; border-radius: 15px; text-align: center; border: 1px solid var(--soft); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .tracker-item i { font-size: 20px; color: var(--p2); margin-bottom: 8px; display: block; }
-        
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #eee; padding: 10px 0; z-index: 1000; }
-        .nav-link { flex: 1; text-align: center; color: #bbb; text-decoration: none; font-size: 11px; }
-        .nav-link.active { color: var(--p2); }
-        .nav-link i { font-size: 20px; display: block; }
+        .noti-box { position: fixed; top: 60px; left: 10px; right: 10px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; z-index: 2000; max-height: 70vh; overflow-y: auto; }
+        .noti-item { padding: 15px; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <header class="top-nav">
-        <div class="logo-text">رقة</div>
-        
-        <div class="notification-wrapper" onclick="toggleNotiBox()">
-            <i class="fas fa-bell" id="bell-icon"></i>
-            <span id="noti-count" class="noti-badge" style="display: none;">0</span>
-            
-            <div id="noti-box" class="noti-box">
-                <div class="noti-header">
-                    <span>التنبيهات</span>
-                    <small onclick="markAllRead()" style="color:#999; cursor:pointer;">مسح الكل</small>
-                </div>
-                <div id="noti-list" class="noti-list">
-                    <div style="padding:20px; text-align:center; color:#ccc;">لا توجد تنبيهات جديدة 🌸</div>
-                </div>
-            </div>
+        <div class="logo">رقة</div>
+        <div class="bell-btn" onclick="toggleNoti()">
+            <i class="fas fa-bell"></i>
+            <span id="noti-count" class="badge" style="display:none;">0</span>
         </div>
     </header>
 
-    <div class="health-grid">
-        <div class="tracker-item" onclick="showHealthInput('menstruation')"><i class="fas fa-tint"></i><span>الحيض</span></div>
-        <div class="tracker-item" onclick="showHealthInput('vitals')"><i class="fas fa-heartbeat"></i><span>الضغط/السكر</span></div>
-        <div class="tracker-item" onclick="showHealthInput('weightloss')"><i class="fas fa-weight"></i><span>الوزن</span></div>
+    <div id="noti-box" class="noti-box">
+        <div style="padding:15px; font-weight:bold; border-bottom:1px solid #eee; color:var(--p2);">تنبيهات طبيبة رقة 🤖</div>
+        <div id="noti-list"></div>
     </div>
 
-    <nav class="nav-bar">
-        <a href="#" class="nav-link active"><i class="fas fa-home"></i>الرئيسية</a>
-        <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i>السجل</a>
-    </nav>
+    <div style="padding: 20px; text-align: center;">
+        <button onclick="addEntry()" style="background:var(--p2); color:white; border:none; padding:15px 30px; border-radius:30px; font-family:'Tajawal';">تسجيل بيانات جديدة</button>
+    </div>
 
     <script>
-        // 1. إدارة المستخدم
-        function initUser() {
-            let uid = localStorage.getItem('raqqa_user_id') || 'USER-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            localStorage.setItem('raqqa_user_id', uid);
-            return uid;
-        }
+        const userId = localStorage.getItem('raqqa_user_id') || 'USER-2UZP6L'; // المعرف الظاهر في صورتك
 
-        // 2. جلب الإشعارات من قاعدة البيانات
+        // دالة جلب الإشعارات (رد الذكاء الاصطناعي)
         async function fetchNotifications() {
-            const userId = initUser();
             try {
                 const res = await fetch(`/api/get-notifications?user_id=${userId}`);
                 const data = await res.json();
-                
-                const countBadge = document.getElementById('noti-count');
                 const list = document.getElementById('noti-list');
+                const badge = document.getElementById('noti-count');
 
                 if (data.notifications && data.notifications.length > 0) {
-                    countBadge.innerText = data.notifications.length;
-                    countBadge.style.display = 'flex';
-                    
+                    badge.style.display = 'flex';
+                    badge.innerText = data.notifications.length;
                     list.innerHTML = data.notifications.map(n => `
-                        <div class="noti-item ${n.type}">
-                            <strong>${n.title}</strong><br>
-                            <span>${n.body}</span>
+                        <div class="noti-item">
+                            <small style="color:#999;">${new Date(n.created_at).toLocaleDateString('ar-EG')}</small><br>
+                            ${n.body}
                         </div>
                     `).join('');
+                } else {
+                    list.innerHTML = '<div style="padding:20px; text-align:center; color:#ccc;">لا توجد نصائح جديدة بعد</div>';
                 }
-            } catch (e) { console.log("خطأ في جلب الإشعارات"); }
+            } catch (e) { console.error("Error fetching notifications"); }
         }
 
-        // 3. حفظ البيانات والمزامنة
-        async function saveDataAndSync(category, val, note) {
-            const userId = initUser();
-            Swal.fire({ title: 'جاري الحفظ...', didOpen: () => Swal.showLoading() });
+        async function addEntry() {
+            const { value: val } = await Swal.fire({
+                title: 'تسجيل قياس السكر',
+                input: 'number',
+                inputLabel: 'ادخلي القيمة الحالية',
+                showCancelButton: true
+            });
 
-            try {
-                const response = await fetch('/api/health-tracking', {
+            if (val) {
+                Swal.fire({ title: 'جاري التحليل الذكي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                await fetch('/api/health-tracking', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, category, value: val, note })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, category: 'السكر', value: val, note: 'تم التسجيل يدوياً' })
                 });
-                const result = await response.json();
-                Swal.close();
-                if (result.success) {
-                    Swal.fire({ icon: 'success', title: 'تم الحفظ', text: result.message, toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
-                    fetchNotifications(); // تحديث الجرس بعد الحفظ
-                }
-            } catch (err) { Swal.fire({ icon: 'error', title: 'خطأ في المزامنة' }); }
+                Swal.fire('تم الحفظ! تحققي من الجرس بعد قليل ✨');
+                setTimeout(fetchNotifications, 3000); // تحديث الجرس بعد 3 ثواني
+            }
         }
 
-        function toggleNotiBox() {
+        function toggleNoti() {
             const box = document.getElementById('noti-box');
             box.style.display = box.style.display === 'block' ? 'none' : 'block';
         }
 
-        function showHealthInput(type) {
-            Swal.fire({
-                title: 'سجل رقة',
-                html: `<input id="v1" type="number" placeholder="القيمة" class="swal2-input"><input id="v2" placeholder="ملاحظة" class="swal2-input">`,
-                confirmButtonText: 'حفظ ومزامنة',
-                preConfirm: () => [document.getElementById('v1').value, document.getElementById('v2').value]
-            }).then(r => { if(r.isConfirmed) saveDataAndSync(type, r.value[0], r.value[1]); });
-        }
-
-        // تشغيل النظام عند الفتح
-        window.onload = () => {
-            initUser();
-            fetchNotifications();
-            // تحديث تلقائي كل 5 دقائق
-            setInterval(fetchNotifications, 300000);
-        };
+        window.onload = fetchNotifications;
     </script>
 </body>
 </html>
