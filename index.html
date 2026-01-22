@@ -8,90 +8,164 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --p2: #eb2f96; --soft: #fff0f6; }
-        body { font-family: 'Tajawal', sans-serif; background: #fffcfd; margin: 0; }
-        .top-nav { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        :root { --p2: #eb2f96; --soft: #fff0f6; --text: #444; }
+        body { font-family: 'Tajawal', sans-serif; background: #fffcfd; margin: 0; color: var(--text); }
+        
+        /* الهيدر والجرس */
+        .top-nav { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1000; }
         .logo { font-weight: bold; color: var(--p2); font-size: 24px; }
         
-        /* أيقونة الجرس */
-        .bell-btn { position: relative; cursor: pointer; font-size: 22px; color: var(--p2); }
-        .badge { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; width: 15px; height: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        
-        .noti-box { position: fixed; top: 60px; left: 10px; right: 10px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; z-index: 2000; max-height: 70vh; overflow-y: auto; }
-        .noti-item { padding: 15px; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.5; }
+        .bell-wrapper { position: relative; cursor: pointer; padding: 5px; }
+        #bell-icon { font-size: 22px; color: var(--p2); transition: 0.3s; }
+        #bell-icon:hover { transform: scale(1.1); }
+        .noti-badge { position: absolute; top: 0; right: 0; background: #ff4d4f; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: bold; }
+
+        /* صندوق الإشعارات المنسدل */
+        .noti-box { position: absolute; top: 50px; left: 10px; width: 280px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 2000; border: 1px solid #eee; overflow: hidden; }
+        .noti-header { padding: 12px; background: var(--soft); font-weight: bold; color: var(--p2); font-size: 14px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        .noti-list { max-height: 350px; overflow-y: auto; }
+        .noti-item { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 13px; line-height: 1.6; transition: 0.2s; }
+        .noti-item:hover { background: #fffcfd; }
+        .noti-item small { color: #aaa; display: block; margin-bottom: 5px; font-size: 11px; }
+        .empty-msg { padding: 30px; text-align: center; color: #ccc; font-size: 13px; }
+
+        /* أزرار التسجيل */
+        .main-container { padding: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--soft); cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+        .card:active { transform: scale(0.95); }
+        .card i { font-size: 30px; color: var(--p2); margin-bottom: 10px; display: block; }
+        .card span { font-weight: 500; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <header class="top-nav">
         <div class="logo">رقة</div>
-        <div class="bell-btn" onclick="toggleNoti()">
-            <i class="fas fa-bell"></i>
-            <span id="noti-count" class="badge" style="display:none;">0</span>
+        <div class="bell-wrapper" onclick="toggleNotiBox()">
+            <i class="fas fa-bell" id="bell-icon"></i>
+            <span id="noti-count" class="noti-badge" style="display: none;">0</span>
+            
+            <div id="noti-box" class="noti-box">
+                <div class="noti-header">تنبيهات طبيبة رقة الذكية 🤖</div>
+                <div id="noti-list" class="noti-list">
+                    <div class="empty-msg">لا توجد نصائح جديدة حالياً 🌸</div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div id="noti-box" class="noti-box">
-        <div style="padding:15px; font-weight:bold; border-bottom:1px solid #eee; color:var(--p2);">تنبيهات طبيبة رقة 🤖</div>
-        <div id="noti-list"></div>
-    </div>
-
-    <div style="padding: 20px; text-align: center;">
-        <button onclick="addEntry()" style="background:var(--p2); color:white; border:none; padding:15px 30px; border-radius:30px; font-family:'Tajawal';">تسجيل بيانات جديدة</button>
-    </div>
+    <main class="main-container">
+        <h3>أهلاً بكِ في رقة ✨</h3>
+        <p style="color: #888; font-size: 14px;">سجلي بياناتكِ الآن لتحصلي على نصيحة ذكية</p>
+        
+        <div class="grid">
+            <div class="card" onclick="openInput('الحيض', 'يوم')">
+                <i class="fas fa-tint"></i>
+                <span>موعد الحيض</span>
+            </div>
+            <div class="card" onclick="openInput('السكر', 'mg/dL')">
+                <i class="fas fa-heartbeat"></i>
+                <span>قياس السكر</span>
+            </div>
+            <div class="card" onclick="openInput('الضغط', 'mmHg')">
+                <i class="fas fa-stethoscope"></i>
+                <span>قياس الضغط</span>
+            </div>
+            <div class="card" onclick="openInput('الوزن', 'kg')">
+                <i class="fas fa-weight"></i>
+                <span>تحديث الوزن</span>
+            </div>
+        </div>
+    </main>
 
     <script>
-        const userId = localStorage.getItem('raqqa_user_id') || 'USER-2UZP6L'; // المعرف الظاهر في صورتك
+        // المعرف الخاص بكِ كما في الصور
+        const USER_ID = "USER-2UZP6L";
 
-        // دالة جلب الإشعارات (رد الذكاء الاصطناعي)
-        async function fetchNotifications() {
+        // 1. جلب الإشعارات (نصائح الذكاء الاصطناعي) من السيرفر
+        async function fetchAIAdvice() {
             try {
-                const res = await fetch(`/api/get-notifications?user_id=${userId}`);
-                const data = await res.json();
+                const response = await fetch(`/api/get-notifications?user_id=${USER_ID}`);
+                const data = await response.json();
+                
                 const list = document.getElementById('noti-list');
                 const badge = document.getElementById('noti-count');
 
                 if (data.notifications && data.notifications.length > 0) {
                     badge.style.display = 'flex';
                     badge.innerText = data.notifications.length;
+                    
                     list.innerHTML = data.notifications.map(n => `
                         <div class="noti-item">
-                            <small style="color:#999;">${new Date(n.created_at).toLocaleDateString('ar-EG')}</small><br>
-                            ${n.body}
-                        </div>
+                            <small>${new Date(n.created_at).toLocaleDateString('ar-EG')} | رقة الذكية</small>
+                            <strong>${n.title}</strong><br>
+                            ${n.body} </div>
                     `).join('');
-                } else {
-                    list.innerHTML = '<div style="padding:20px; text-align:center; color:#ccc;">لا توجد نصائح جديدة بعد</div>';
                 }
-            } catch (e) { console.error("Error fetching notifications"); }
-        }
-
-        async function addEntry() {
-            const { value: val } = await Swal.fire({
-                title: 'تسجيل قياس السكر',
-                input: 'number',
-                inputLabel: 'ادخلي القيمة الحالية',
-                showCancelButton: true
-            });
-
-            if (val) {
-                Swal.fire({ title: 'جاري التحليل الذكي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                await fetch('/api/health-tracking', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ user_id: userId, category: 'السكر', value: val, note: 'تم التسجيل يدوياً' })
-                });
-                Swal.fire('تم الحفظ! تحققي من الجرس بعد قليل ✨');
-                setTimeout(fetchNotifications, 3000); // تحديث الجرس بعد 3 ثواني
+            } catch (err) {
+                console.error("خطأ في جلب الإشعارات:", err);
             }
         }
 
-        function toggleNoti() {
-            const box = document.getElementById('noti-box');
-            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        // 2. إرسال البيانات للتحليل والحفظ
+        async function sendData(category, value, note) {
+            Swal.fire({ title: 'جاري التحليل بالذكاء الاصطناعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                const response = await fetch('/api/health-tracking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: USER_ID, category, value, note })
+                });
+                
+                const result = await response.json();
+                Swal.close();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم الحفظ والتحليل ✨',
+                        text: 'تحققي من الجرس لرؤية نصيحة رقة لكِ',
+                        timer: 3000
+                    });
+                    // تحديث الجرس فوراً لرؤية النصيحة الجديدة
+                    setTimeout(fetchAIAdvice, 2000);
+                }
+            } catch (err) {
+                Swal.fire('خطأ', 'فشلت عملية المزامنة، تأكدي من الاتصال', 'error');
+            }
         }
 
-        window.onload = fetchNotifications;
+        // 3. نوافذ الإدخال
+        async function openInput(cat, unit) {
+            const { value: formValues } = await Swal.fire({
+                title: `تسجيل ${cat}`,
+                html: `<input id="val" type="number" placeholder="القيمة بـ ${unit}" class="swal2-input">` +
+                      `<input id="note" type="text" placeholder="ملاحظة (اختياري)" class="swal2-input">`,
+                focusConfirm: false,
+                confirmButtonText: 'إرسال لـ رقة',
+                preConfirm: () => [
+                    document.getElementById('val').value,
+                    document.getElementById('note').value
+                ]
+            });
+
+            if (formValues && formValues[0]) {
+                sendData(cat, formValues[0], formValues[1]);
+            }
+        }
+
+        // 4. إظهار/إخفاء صندوق الجرس
+        function toggleNotiBox() {
+            const box = document.getElementById('noti-box');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+            // عند فتح الصندوق نقوم بتحديث البيانات
+            if(box.style.display === 'block') fetchAIAdvice();
+        }
+
+        // تشغيل الجلب عند فتح التطبيق
+        window.onload = fetchAIAdvice;
     </script>
 </body>
-</html>
+    </html>
