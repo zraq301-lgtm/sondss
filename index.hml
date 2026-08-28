@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sondss AI - واجهة التجربة</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; background: #f4f6f8; direction: rtl; }
+    .card { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    textarea { width: 100%; height: 80px; margin-top: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    button:disabled { background: #aaa; }
+    .response { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>مساعد Sondss AI لتجربة الـ API</h2>
+  <label for="msg">اكتب استفسارك عن حركة المتجر:</label>
+  <textarea id="msg" placeholder="مثال: كم عدد المنتجات وقيمة المخزون الحالية؟"></textarea>
+  <button id="btn" onclick="sendPrompt()">إرسال الطلب</button>
+
+  <div id="result" class="response" style="display:none;"></div>
+</div>
+
+<script>
+  async function sendPrompt() {
+    const msgInput = document.getElementById('msg');
+    const resultDiv = document.getElementById('result');
+    const btn = document.getElementById('btn');
+
+    if (!msgInput.value.trim()) return;
+
+    btn.disabled = true;
+    btn.innerText = 'جاري المعالجة...';
+    resultDiv.style.display = 'block';
+    resultDiv.innerText = 'جاري الاتصال بالـ API...';
+
+    const API_URL = 'https://sondss.vercel.app/api/chatController';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: msgInput.value,
+          storeData: {
+            productCount: 120,
+            inventoryValue: 35000,
+            lowStock: 3,
+            totalRevenue: 15000,
+            totalPurchases: 9000
+          }
+        })
+      });
+
+      const data = await res.json();
+      resultDiv.innerText = data.reply || data.error || JSON.stringify(data);
+    } catch (err) {
+      resultDiv.innerText = 'حدث خطأ أثناء الاتصال: ' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'إرسال الطلب';
+    }
+  }
+</script>
+
+</body>
+</html>
